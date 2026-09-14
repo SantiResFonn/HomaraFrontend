@@ -11,6 +11,19 @@ import { api } from "@/app/lib/api";
 import { useLanguage } from "@/app/context/LanguageContext";
 import AdminFeedbackState from "@/app/components/AdminFeedbackState";
 
+function getStockInfo(
+  stockQuantity: number,
+  t: (key: string) => string
+): { status: "error" | "warning" | "success"; label: string } {
+  if (stockQuantity === 0) {
+    return { status: "error", label: t("admin.metrics.out_of_stock") };
+  }
+  if (stockQuantity < 50) {
+    return { status: "warning", label: t("admin.metrics.low_stock") };
+  }
+  return { status: "success", label: t("admin.metrics.normal_stock") };
+}
+
 export default function AdminInventarioPage() {
   const [products, setProducts] = useState<InventoryProduct[]>([]);
   const [stats, setStats] = useState({
@@ -250,18 +263,10 @@ export default function AdminInventarioPage() {
             </thead>
             <tbody>
               {paginatedProducts.map((product: InventoryProduct) => {
-                const stockStatus =
-                  product.stockQuantity === 0
-                    ? "error"
-                    : product.stockQuantity < 50
-                    ? "warning"
-                    : "success";
-                const stockLabel =
-                  product.stockQuantity === 0
-                    ? t("admin.metrics.out_of_stock")
-                    : product.stockQuantity < 50
-                    ? t("admin.metrics.low_stock")
-                    : t("admin.metrics.normal_stock");
+                const { status: stockStatus, label: stockLabel } = getStockInfo(
+                  product.stockQuantity,
+                  t
+                );
 
                 return (
                   <tr

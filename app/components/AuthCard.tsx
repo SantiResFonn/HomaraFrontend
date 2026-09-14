@@ -12,7 +12,7 @@ export default function AuthCard({
   errorMsg,
   maxWidth = "md",
   children,
-}: AuthCardProps) {
+}: Readonly<AuthCardProps>) {
   const maxWidthClass = maxWidth === "2xl" ? "max-w-2xl" : "max-w-md";
 
   return (

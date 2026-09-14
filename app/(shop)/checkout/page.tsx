@@ -75,7 +75,7 @@ export default function CheckoutPage() {
     fetchCart();
   }, [authLoading, isAuthenticated, user, router]);
 
-  const handleCheckout = async (e: React.FormEvent) => {
+  const handleCheckout = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!firstName || !lastName || !email || !phone || !address || !city || !state) {
       showToast(t("checkout.required_fields_error"), "warning");

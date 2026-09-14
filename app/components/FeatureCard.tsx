@@ -12,7 +12,7 @@ export default function FeatureCard({
   step,
   title,
   description,
-}: FeatureCardProps) {
+}: Readonly<FeatureCardProps>) {
   return (
     <div className="relative bg-bg-surface rounded-xl border border-border p-8 text-center card-hover group">
       {/* Step number */}

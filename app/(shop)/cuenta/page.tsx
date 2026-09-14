@@ -16,6 +16,12 @@ import { useLanguage } from "@/app/context/LanguageContext";
 import OrderDetailModal, { FullOrderDetail } from "@/app/components/OrderDetailModal";
 
 
+const ORDER_STATUS_VARIANTS: Record<string, "success" | "error" | "info" | "warning"> = {
+  entregado: "success",
+  cancelado: "error",
+  enviado: "info",
+};
+
 export default function CuentaPage() {
   const { user, loading, isAuthenticated, logout, refreshUser } = useAuth();
   const router = useRouter();
@@ -38,7 +44,6 @@ export default function CuentaPage() {
   // Edit Profile Modal States
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [editError, setEditError] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -48,6 +53,7 @@ export default function CuentaPage() {
     state: "",
     zipCode: "",
   });
+  const [editError, setEditError] = useState("");
 
   const handleStartEdit = () => {
     if (user) {
@@ -65,7 +71,7 @@ export default function CuentaPage() {
     }
   };
 
-  const handleSaveProfile = async (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!formData.firstName || !formData.lastName) {
       setEditError(t("account.required_error"));
@@ -265,13 +271,7 @@ export default function CuentaPage() {
                 {orders.map((order: OrderDetail) => {
                   const s = order.status?.toLowerCase();
                   const statusVariant =
-                    s === "entregado"
-                      ? "success"
-                      : s === "cancelado"
-                      ? "error"
-                      : s === "enviado"
-                      ? "info"
-                      : "warning";
+                    (s ? ORDER_STATUS_VARIANTS[s] : undefined) ?? "warning";
 
                   return (
                     <Card 

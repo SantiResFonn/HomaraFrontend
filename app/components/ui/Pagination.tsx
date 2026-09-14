@@ -12,6 +12,8 @@ interface PaginationProps {
   itemTypeLabel?: string;
 }
 
+type PageItem = number | "ellipsis-prev" | "ellipsis-next";
+
 export default function Pagination({
   currentPage,
   totalPages,
@@ -19,7 +21,7 @@ export default function Pagination({
   itemsPerPage,
   onPageChange,
   itemTypeLabel,
-}: PaginationProps) {
+}: Readonly<PaginationProps>) {
   const { t } = useLanguage();
   if (totalPages <= 1) return null;
 
@@ -27,8 +29,8 @@ export default function Pagination({
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
   // Build page numbers with ellipsis
-  const getPageNumbers = (): (number | "ellipsis")[] => {
-    const pages: (number | "ellipsis")[] = [];
+  const getPageNumbers = (): PageItem[] => {
+    const pages: PageItem[] = [];
     const maxVisible = 5;
 
     if (totalPages <= maxVisible + 2) {
@@ -39,7 +41,7 @@ export default function Pagination({
       pages.push(1);
 
       if (currentPage > 3) {
-        pages.push("ellipsis");
+        pages.push("ellipsis-prev");
       }
 
       // Pages around current
@@ -51,7 +53,7 @@ export default function Pagination({
       }
 
       if (currentPage < totalPages - 2) {
-        pages.push("ellipsis");
+        pages.push("ellipsis-next");
       }
 
       // Always show last page
@@ -88,10 +90,10 @@ export default function Pagination({
         </button>
 
         {/* Page numbers */}
-        {pageNumbers.map((page, index) =>
-          page === "ellipsis" ? (
+        {pageNumbers.map((page) =>
+          typeof page === "string" ? (
             <span
-              key={`ellipsis-${index}`}
+              key={page}
               className="px-2 py-2 text-[10px] text-text-muted font-bold select-none"
             >
               ···

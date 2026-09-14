@@ -125,6 +125,7 @@ function AccessoriesTab({
           <>
             <label
               htmlFor="include-adhesive-checkbox"
+              aria-label={t("projects.adhesives_label")}
               className="flex items-center gap-3 p-4 bg-bg-surface-light border border-border rounded-lg cursor-pointer hover:bg-bg-surface transition-colors"
             >
               <input
@@ -142,6 +143,7 @@ function AccessoriesTab({
 
             <label
               htmlFor="include-grout-checkbox"
+              aria-label={t("projects.grout_label")}
               className="flex items-center gap-3 p-4 bg-bg-surface-light border border-border rounded-lg cursor-pointer hover:bg-bg-surface transition-colors"
             >
               <input
@@ -159,6 +161,7 @@ function AccessoriesTab({
 
             <label
               htmlFor="include-spacers-checkbox"
+              aria-label={t("projects.spacers_label")}
               className="flex items-center gap-3 p-4 bg-bg-surface-light border border-border rounded-lg cursor-pointer hover:bg-bg-surface transition-colors"
             >
               <input
@@ -178,6 +181,7 @@ function AccessoriesTab({
 
         <label
           htmlFor="include-tools-checkbox"
+          aria-label={t("projects.tools_kit_label")}
           className="flex items-center gap-3 p-4 bg-bg-surface-light border border-border rounded-lg cursor-pointer hover:bg-bg-surface transition-colors"
         >
           <input
@@ -238,6 +242,13 @@ function LiveSummaryPanel({
   onSave,
   t,
 }: Readonly<LiveSummaryPanelProps>) {
+  let buttonLabel = t("projects.calculate_btn");
+  if (loading) {
+    buttonLabel = t("projects.calculating");
+  } else if (editId) {
+    buttonLabel = t("projects.recalculate_btn");
+  }
+
   return (
     <div className="lg:col-span-4">
       <div className="bg-bg-surface border border-border p-6 rounded-none sticky top-24 space-y-6 hover:shadow-md transition-shadow">
@@ -295,7 +306,7 @@ function LiveSummaryPanel({
         {/* Acción de Guardado y Recalcular */}
         <div className="pt-2">
           <Button onClick={onSave} disabled={loading} size="lg" fullWidth>
-            {loading ? t("projects.calculating") : editId ? t("projects.recalculate_btn") : t("projects.calculate_btn")}
+            {buttonLabel}
           </Button>
           <p className="text-[10px] text-text-muted text-center mt-2.5 leading-relaxed">
             {t("projects.engineering_disclaimer")}
@@ -551,6 +562,13 @@ function NuevoProyectoContent() {
     return catalogProducts.find((p) => p.id === selectedProductId);
   }, [catalogProducts, selectedProductId]);
 
+  let headerSaveButtonText = t("projects.save_and_calculate");
+  if (loading) {
+    headerSaveButtonText = t("projects.calculating");
+  } else if (editId) {
+    headerSaveButtonText = t("projects.save_changes");
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
       {/* Header */}
@@ -568,7 +586,7 @@ function NuevoProyectoContent() {
             {t("projects.cancel_btn")}
           </Button>
           <Button onClick={handleSaveProject} disabled={loading} size="md">
-            {loading ? t("projects.calculating") : editId ? t("projects.save_changes") : t("projects.save_and_calculate")}
+            {headerSaveButtonText}
           </Button>
         </div>
       </div>
@@ -903,16 +921,18 @@ function NuevoProyectoContent() {
                   {t("projects.link_product_desc")}
                 </p>
 
-                {fetchingProducts ? (
+                {fetchingProducts && (
                   <div className="py-6 text-center text-sm text-text-muted flex items-center justify-center gap-2">
                     <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                     {t("projects.loading_store_products")}
                   </div>
-                ) : filteredCatalogProducts.length === 0 ? (
+                )}
+                {!fetchingProducts && filteredCatalogProducts.length === 0 && (
                   <div className="py-4 text-center text-xs text-text-muted">
                     {t("projects.no_products_found")}
                   </div>
-                ) : (
+                )}
+                {!fetchingProducts && filteredCatalogProducts.length > 0 && (
                   <div className="space-y-3">
                     <div className="grid grid-cols-1 gap-2 max-h-56 overflow-y-auto">
                       {filteredCatalogProducts.map((p) => {

@@ -22,29 +22,28 @@ export default function Card({
   padding = "md",
   onClick,
 }: Readonly<CardProps>) {
-  const handleKeyDown = onClick
-    ? (e: React.KeyboardEvent<HTMLDivElement>) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onClick();
-        }
-      }
-    : undefined;
+  const classes = `
+    bg-bg-surface rounded-xl border border-border
+    ${paddings[padding]}
+    ${hover ? "card-hover cursor-pointer" : ""}
+    ${onClick ? "cursor-pointer text-left w-full" : ""}
+    ${className}
+  `;
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={classes}
+      >
+        {children}
+      </button>
+    );
+  }
 
   return (
-    <div
-      role={onClick ? "button" : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onClick={onClick}
-      onKeyDown={handleKeyDown}
-      className={`
-        bg-bg-surface rounded-xl border border-border
-        ${paddings[padding]}
-        ${hover ? "card-hover cursor-pointer" : ""}
-        ${onClick ? "cursor-pointer" : ""}
-        ${className}
-      `}
-    >
+    <div className={classes}>
       {children}
     </div>
   );

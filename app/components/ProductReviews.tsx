@@ -23,7 +23,7 @@ interface ProductReviewsProps {
   productId: string;
 }
 
-export default function ProductReviews({ productId }: ProductReviewsProps) {
+export default function ProductReviews({ productId }: Readonly<ProductReviewsProps>) {
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
   const { t } = useLanguage();
@@ -59,7 +59,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
 
   const hasUserReviewed = user && reviews.some((r) => r.userId === user.id);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (rating === 0) {
       setError(t("reviews.rating_required_error"));
@@ -114,14 +114,16 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
               {t("reviews.rate_title")}
             </h3>
 
-            {!isAuthenticated ? (
+            {!isAuthenticated && (
               <div className="text-xs text-text-secondary space-y-3">
                 <p>{t("reviews.login_required")}</p>
                 <Button href={`/login?redirect=/catalogo/${productId}`} variant="outline" size="sm" className="w-full text-center">
                   {t("reviews.login_btn")}
                 </Button>
               </div>
-            ) : hasUserReviewed ? (
+            )}
+
+            {isAuthenticated && hasUserReviewed && (
               <div className="space-y-2">
                 <Badge variant="success" className="w-full justify-center py-1 text-xs">
                   {t("reviews.already_reviewed_badge")}
@@ -130,20 +132,25 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                   {t("reviews.already_reviewed_desc")}
                 </p>
               </div>
-            ) : success ? (
+            )}
+
+            {isAuthenticated && !hasUserReviewed && success && (
               <div className="bg-success/5 border border-success/20 p-4 text-center space-y-2">
                 <p className="text-xs font-bold text-success">{t("reviews.success_title")}</p>
                 <p className="text-[11px] text-text-secondary leading-relaxed">
                   {t("reviews.success_desc")}
                 </p>
                 <button
+                  type="button"
                   onClick={() => setSuccess(false)}
                   className="text-[10px] text-primary hover:underline font-bold uppercase tracking-wider mt-2 cursor-pointer"
                 >
                   {t("reviews.write_another")}
                 </button>
               </div>
-            ) : (
+            )}
+
+            {isAuthenticated && !hasUserReviewed && !success && (
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Rating Input */}
                 <div className="space-y-1.5">
@@ -219,7 +226,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
             {t("reviews.reviews_count")} ({reviews.length})
           </h3>
 
-          {loading ? (
+          {loading && (
             <div className="space-y-4">
               {[1, 2].map((i) => (
                 <div key={i} className="border border-border p-4 bg-bg-surface space-y-3 animate-pulse">
@@ -228,7 +235,9 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                 </div>
               ))}
             </div>
-          ) : reviews.length === 0 ? (
+          )}
+
+          {!loading && reviews.length === 0 && (
             <div className="text-center py-10 bg-bg-surface border border-border">
               <p className="text-xs text-text-secondary font-medium">
                 {t("reviews.no_reviews")}
@@ -237,7 +246,9 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                 {t("reviews.no_reviews_desc")}
               </p>
             </div>
-          ) : (
+          )}
+
+          {!loading && reviews.length > 0 && (
             <div className="space-y-4">
               {reviews.map((rev) => (
                 <div
@@ -266,7 +277,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
 
                     {/* Stars */}
                     <div className="flex items-center gap-0.5">
-                      {[...new Array(5)].map((_, i) => (
+                      {[0, 1, 2, 3, 4].map((i) => (
                         <svg
                           key={`${rev.id}-star-${i}`}
                           className={`h-3.5 w-3.5 ${

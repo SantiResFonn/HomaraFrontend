@@ -7,7 +7,7 @@ interface CategoryCardProps {
   category: Category;
 }
 
-export default function CategoryCard({ category }: CategoryCardProps) {
+export default function CategoryCard({ category }: Readonly<CategoryCardProps>) {
   const { t } = useLanguage();
   return (
     <Link

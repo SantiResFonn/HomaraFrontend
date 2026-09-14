@@ -26,21 +26,21 @@ function lookupKey(dict: unknown, keys: readonly string[]): string | null {
 }
 
 export function LanguageProvider({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [language, setLanguageState] = useState<Language>("es");
+  const [language, setLanguage] = useState<Language>("es");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedLang = localStorage.getItem("homara_lang") as Language;
       if (savedLang === "es" || savedLang === "en") {
         setTimeout(() => {
-          setLanguageState(savedLang);
+          setLanguage(savedLang);
         }, 0);
       }
     }
   }, []);
 
-  const setLanguage = useCallback((lang: Language) => {
-    setLanguageState(lang);
+  const handleSetLanguage = useCallback((lang: Language) => {
+    setLanguage(lang);
     if (typeof window !== "undefined") {
       localStorage.setItem("homara_lang", lang);
     }
@@ -48,21 +48,16 @@ export function LanguageProvider({ children }: Readonly<{ children: React.ReactN
 
   const t = useCallback((key: string): string => {
     const keys = key.split(".");
-    return (
-      lookupKey(translations[language], keys) ??
-      lookupKey(translations["es"], keys) ??
-      key
-    );
+    const currentDict = translations[language] || translations.es;
+    const fallbackDict = translations.es;
+
+    return lookupKey(currentDict, keys) ?? lookupKey(fallbackDict, keys) ?? key;
   }, [language]);
 
-  const contextValue = useMemo(() => ({
-    language,
-    setLanguage,
-    t,
-  }), [language, setLanguage, t]);
+  const value = useMemo(() => ({ language, setLanguage: handleSetLanguage, t }), [language, handleSetLanguage, t]);
 
   return (
-    <LanguageContext.Provider value={contextValue}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );

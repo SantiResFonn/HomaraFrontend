@@ -375,8 +375,8 @@ body {
 /* --- Selection --- */
 
 ::selection {
-  background-color: rgba(9, 9, 11, 0.08);
-  color: #09090B;
+  background-color: #09090B;
+  color: #FFFFFF;
 }
 
 /* --- Minimalist Hover Drawing Underline --- */

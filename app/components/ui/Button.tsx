@@ -45,7 +45,7 @@ export default function Button({
   type = "button",
   fullWidth = false,
   id,
-}: ButtonProps) {
+}: Readonly<ButtonProps>) {
   const baseClasses =
     "inline-flex items-center justify-center transition-all duration-200 cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-bg-base";
   const disabledClasses = disabled

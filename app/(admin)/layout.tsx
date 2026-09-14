@@ -3,9 +3,9 @@ import RequireAdmin from "@/app/components/RequireAdmin";
 
 export default function AdminLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <RequireAdmin>
       <div className="flex min-h-screen">

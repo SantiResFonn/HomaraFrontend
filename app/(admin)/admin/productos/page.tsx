@@ -119,7 +119,7 @@ export default function AdminProductosPage() {
     }
   };
 
-  const handleSaveProduct = async (e: React.FormEvent) => {
+  const handleSaveProduct = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setFormError("");
 
@@ -132,17 +132,17 @@ export default function AdminProductosPage() {
     const offerPriceNum = formOriginalPrice ? Math.floor(Number(formOriginalPrice)) : null;
     const stockNum = Math.floor(Number(formStock));
 
-    if (isNaN(normalPriceNum) || normalPriceNum <= 0) {
+    if (Number.isNaN(normalPriceNum) || normalPriceNum <= 0) {
       setFormError(t("admin.price_error"));
       return;
     }
 
-    if (isNaN(stockNum) || stockNum < 0) {
+    if (Number.isNaN(stockNum) || stockNum < 0) {
       setFormError(t("admin.stock_error"));
       return;
     }
 
-    if (offerPriceNum !== null && (isNaN(offerPriceNum) || offerPriceNum <= 0 || offerPriceNum >= normalPriceNum)) {
+    if (offerPriceNum !== null && (Number.isNaN(offerPriceNum) || offerPriceNum <= 0 || offerPriceNum >= normalPriceNum)) {
       setFormError(t("admin.offer_price_error"));
       return;
     }
@@ -214,11 +214,12 @@ export default function AdminProductosPage() {
   const filteredProducts = products.filter((p) => {
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.id.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "all" || p.categoryId === selectedCategory;
-    const matchesStock = selectedStock === "all" 
-      ? true 
-      : selectedStock === "in_stock" 
-      ? p.stockQuantity > 0 
-      : p.stockQuantity <= 0;
+    let matchesStock = true;
+    if (selectedStock === "in_stock") {
+      matchesStock = p.stockQuantity > 0;
+    } else if (selectedStock === "out_of_stock") {
+      matchesStock = p.stockQuantity <= 0;
+    }
     return matchesSearch && matchesCategory && matchesStock;
   });
 

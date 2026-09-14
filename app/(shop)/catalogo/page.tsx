@@ -25,6 +25,7 @@ function CatalogoContent() {
   const { t } = useLanguage();
 
   const ITEMS_PER_PAGE = 25;
+  const SKELETON_KEYS = ["sk-1", "sk-2", "sk-3", "sk-4", "sk-5", "sk-6", "sk-7", "sk-8"];
 
   // Sincronizar parámetros desde la URL
   useEffect(() => {
@@ -225,15 +226,13 @@ function CatalogoContent() {
       {/* Product grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {loading
-          ? new Array(8)
-              .fill(null)
-              .map((_, i) => (
-                <div key={`skeleton-product-${i}`} className="border border-border p-4 bg-bg-surface space-y-4 animate-pulse">
-                  <div className="aspect-[4/3] bg-bg-surface-light w-full" />
-                  <div className="h-4 bg-bg-surface-light w-2/3" />
-                  <div className="h-4 bg-bg-surface-light w-1/3" />
-                </div>
-              ))
+          ? SKELETON_KEYS.map((skKey) => (
+              <div key={skKey} className="border border-border p-4 bg-bg-surface space-y-4 animate-pulse">
+                <div className="aspect-[4/3] bg-bg-surface-light w-full" />
+                <div className="h-4 bg-bg-surface-light w-2/3" />
+                <div className="h-4 bg-bg-surface-light w-1/3" />
+              </div>
+            ))
           : paginatedProducts.map((product: Product) => (
               <ProductCard key={product.id} product={product} />
             ))}

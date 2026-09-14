@@ -28,7 +28,7 @@ export default function Input({
   icon,
   error,
   step,
-}: InputProps) {
+}: Readonly<InputProps>) {
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
       {label && (

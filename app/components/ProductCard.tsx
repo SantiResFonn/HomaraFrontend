@@ -10,7 +10,7 @@ interface ProductCardProps {
   product: Product;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product }: Readonly<ProductCardProps>) {
   const { t } = useLanguage();
 
   const discount = product.originalPrice
@@ -64,7 +64,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             {/* Rating */}
             <div className="flex items-center gap-1 mt-2">
               <div className="flex items-center gap-0.5">
-                {[...new Array(5)].map((_, i) => (
+                {[0, 1, 2, 3, 4].map((i) => (
                   <svg
                     key={`${product.id}-star-${i}`}
                     className={`h-3 w-3 ${

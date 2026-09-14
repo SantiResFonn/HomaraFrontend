@@ -9,6 +9,12 @@ import { api } from "@/app/lib/api";
 import { useLanguage } from "@/app/context/LanguageContext";
 import AdminFeedbackState from "@/app/components/AdminFeedbackState";
 
+const ORDER_STATUS_VARIANTS: Record<string, "success" | "error" | "info" | "warning"> = {
+  entregado: "success",
+  cancelado: "error",
+  enviado: "info",
+};
+
 export default function AdminDashboard() {
   const [orders, setOrders] = useState<OrderDetail[]>([]);
   const [adminMetrics, setAdminMetrics] = useState<AdminMetric[]>([]);
@@ -243,13 +249,7 @@ export default function AdminDashboard() {
               {orders.slice(0, 5).map((order: OrderDetail) => {
                 const s = order.status?.toLowerCase();
                 const statusVariant =
-                  s === "entregado"
-                    ? "success"
-                    : s === "cancelado"
-                    ? "error"
-                    : s === "enviado"
-                    ? "info"
-                    : "warning";
+                  (s ? ORDER_STATUS_VARIANTS[s] : undefined) ?? "warning";
 
                 return (
                   <tr

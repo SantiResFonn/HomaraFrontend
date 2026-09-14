@@ -111,7 +111,7 @@ export default function ProductDetailPage() {
           {/* Rating */}
           <div className="flex items-center gap-2 mt-3">
             <div className="flex items-center gap-0.5">
-              {[...new Array(5)].map((_, i) => (
+              {[0, 1, 2, 3, 4].map((i) => (
                 <svg
                   key={`${product.id}-star-${i}`}
                   className={`h-4 w-4 ${

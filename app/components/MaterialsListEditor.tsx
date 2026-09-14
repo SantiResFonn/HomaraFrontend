@@ -26,7 +26,7 @@ interface MaterialsListEditorProps {
   catSlug: string;
 }
 
-const QUANTITY_REGEX = /^([\d.,]+)(?:\s+(.*))?$/;
+const QUANTITY_REGEX = /^(\d+(?:[.,]\d+)?)(?:\s+(.*))?$/;
 
 // Función de utilidad para parsear cantidades como "7 bultos", "27.5 m²" o "1 unidad"
 function parseQuantity(quantityStr: string) {
@@ -179,7 +179,7 @@ export default function MaterialsListEditor({
 
             return (
               <div
-                key={index}
+                key={mat.id ?? `${mat.name}-${mat.quantity}`}
                 className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 hover:bg-bg-surface-light transition-colors group"
               >
                 {/* Info & Icono */}

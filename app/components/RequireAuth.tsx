@@ -10,7 +10,7 @@ function isPrivateRoute(pathname: string): boolean {
   return PRIVATE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
-export default function RequireAuth({ children }: { children: React.ReactNode }) {
+export default function RequireAuth({ children }: Readonly<{ children: React.ReactNode }>) {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();

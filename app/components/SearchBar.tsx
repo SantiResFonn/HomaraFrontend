@@ -15,7 +15,7 @@ export default function SearchBar({
   onSearch,
   className = "",
   initialValue = "",
-}: SearchBarProps) {
+}: Readonly<SearchBarProps>) {
   const { t } = useLanguage();
   const [query, setQuery] = useState(initialValue);
 
@@ -23,7 +23,7 @@ export default function SearchBar({
     setQuery(initialValue);
   }, [initialValue]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
     onSearch?.(query);
   };

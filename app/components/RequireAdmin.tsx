@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
 
-export default function RequireAdmin({ children }: { children: React.ReactNode }) {
+export default function RequireAdmin({ children }: Readonly<{ children: React.ReactNode }>) {
   const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
 
