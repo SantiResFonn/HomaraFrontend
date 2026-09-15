@@ -1,49 +1,15 @@
 // ============================================================================
-// Dobles de prueba para el frontend — sin framework, sin jsdom.
+// Dobles de prueba para el frontend (mocks de Vitest) — sin jsdom.
 //
 // El código de `app/lib/` toca globales del navegador (`window`,
-// `localStorage`, `fetch`). Acá hay fakes mínimos hechos a mano que se
-// instalan en `globalThis` para el caso que los necesita.
+// `localStorage`, `fetch`). Acá hay fakes mínimos que se instalan en
+// `globalThis` para el caso que los necesita; `fetch` se reemplaza por un
+// `vi.fn()`, así que en los casos se inspecciona con `.mock.calls` y se puede
+// comprobar con `expect(fetch).toHaveBeenCalledWith(...)`.
 // ============================================================================
 
-import { deepStrictEqual } from "node:assert/strict";
-
-// --- Spy artesanal (igual que en el backend) ---------------------------
-
-export interface Spy {
-  (...args: any[]): any;
-  calls: any[][];
-  returns(v: any): Spy;
-  resolves(v: any): Spy;
-  rejects(e: any): Spy;
-  does(f: (...a: any[]) => any): Spy;
-  reset(): Spy;
-}
-
-export function spy(impl?: (...a: any[]) => any): Spy {
-  let base = impl;
-  const s = ((...args: any[]) => {
-    s.calls.push(args);
-    return base ? base(...args) : undefined;
-  }) as Spy;
-  s.calls = [];
-  s.returns = (v) => ((base = () => v), s);
-  s.resolves = (v) => ((base = async () => v), s);
-  s.rejects = (e) => ((base = async () => { throw e; }), s);
-  s.does = (f) => ((base = f), s);
-  s.reset = () => ((s.calls = []), (base = impl), s);
-  return s;
-}
-
-export const calledWith = (s: Spy, ...esperados: any[]): boolean =>
-  s.calls.some((c) => {
-    try {
-      deepStrictEqual(c, esperados);
-      return true;
-    } catch {
-      return false;
-    }
-  });
+import { vi } from "vitest";
+import type { Mock } from "vitest";
 
 // --- localStorage falso ----------------------------------------------
 
@@ -125,11 +91,11 @@ export interface RespuestaFalsa {
 }
 
 /**
- * Reemplaza `globalThis.fetch` por un doble. `handler` recibe (url, opts) y
- * decide la respuesta. Devuelve el spy con `.calls` para inspeccionar.
+ * Reemplaza `globalThis.fetch` por un mock de Vitest. `handler` recibe
+ * (url, opts) y decide la respuesta. Devuelve el mock para inspeccionarlo.
  */
-export function instalarFetch(handler: (url: string, opts: any) => RespuestaFalsa = () => ({})): Spy {
-  const fn = spy(async (url: string, opts: any) => {
+export function instalarFetch(handler: (url: string, opts: any) => RespuestaFalsa = () => ({})): Mock {
+  const fn = vi.fn(async (url: string, opts: any) => {
     const r = handler(url, opts) ?? {};
     const status = r.status ?? 200;
     return {
@@ -142,7 +108,7 @@ export function instalarFetch(handler: (url: string, opts: any) => RespuestaFals
       },
     };
   });
-  (globalThis as any).fetch = fn;
+  vi.stubGlobal("fetch", fn);
   return fn;
 }
 
