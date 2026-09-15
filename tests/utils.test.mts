@@ -1,4 +1,9 @@
 // app/lib/utils.ts · formateo de precios, estados y traducción de materiales
+//
+// Cada caso sigue el patrón AAA: Arrange (entradas y esperados), Act (una
+// invocación de la función bajo prueba por entrada), Assert (comprobaciones).
+// Los casos de tabla comparan por índice para que el mensaje de fallo diga
+// cuál entrada falló.
 
 import { test, is, has } from "./harness.mjs";
 import { tIdentidad, tDiccionario } from "./helpers.mjs";
@@ -12,196 +17,302 @@ import {
 
 const soloDigitos = (s: string) => s.replace(/[^\d]/g, "");
 
+/** Comprueba una tabla de [entrada, esperado] contra los valores obtenidos. */
+function comprobarTabla(casos: Array<[unknown, unknown]>, obtenidos: unknown[]) {
+  casos.forEach(([entrada, esperado], i) => is(obtenidos[i], esperado, `entrada: ${JSON.stringify(entrada)}`));
+}
+
 // --- formatPrice ---------------------------------------------------
 
 test("fmt-01", "Formatea pesos enteros sin decimales", () => {
-  is(soloDigitos(formatPrice(38900)), "38900");
-  has(formatPrice(38900), "38.900"); // separador de miles es punto (es-CO)
+  // Arrange
+  const precio = 38900;
+
+  // Act
+  const formateado = formatPrice(precio);
+
+  // Assert
+  is(soloDigitos(formateado), "38900");
+  has(formateado, "38.900"); // separador de miles es punto (es-CO)
 });
 
 test("fmt-02", "Cero se formatea como 0 sin decimales", () => {
-  is(soloDigitos(formatPrice(0)), "0");
+  // Arrange
+  const precio = 0;
+
+  // Act
+  const formateado = formatPrice(precio);
+
+  // Assert
+  is(soloDigitos(formateado), "0");
 });
 
 test("fmt-03", "Millones llevan separador de miles", () => {
-  is(soloDigitos(formatPrice(1_234_567)), "1234567");
-  has(formatPrice(1_234_567), "1.234.567");
+  // Arrange
+  const precio = 1_234_567;
+
+  // Act
+  const formateado = formatPrice(precio);
+
+  // Assert
+  is(soloDigitos(formateado), "1234567");
+  has(formateado, "1.234.567");
 });
 
 // --- getStatusLabel ---------------------------------------------
 
 test("status-label-01", "Traduce el estado normalizando mayúsculas", () => {
-  is(getStatusLabel("EN_PROGRESO"), "En progreso");
-  is(getStatusLabel("completado"), "Completado");
-  is(getStatusLabel("pausado"), "Pausado");
-  is(getStatusLabel("pendiente"), "Pendiente");
-  is(getStatusLabel("Procesando"), "Procesando");
-  is(getStatusLabel("enviado"), "Enviado");
-  is(getStatusLabel("entregado"), "Entregado");
-  is(getStatusLabel("cancelado"), "Cancelado");
+  // Arrange
+  const casos: Array<[unknown, unknown]> = [
+    ["EN_PROGRESO", "En progreso"],
+    ["completado", "Completado"],
+    ["pausado", "Pausado"],
+    ["pendiente", "Pendiente"],
+    ["Procesando", "Procesando"],
+    ["enviado", "Enviado"],
+    ["entregado", "Entregado"],
+    ["cancelado", "Cancelado"],
+  ];
+
+  // Act
+  const obtenidos = casos.map(([estado]) => getStatusLabel(estado as string));
+
+  // Assert
+  comprobarTabla(casos, obtenidos);
 });
 
 test("status-label-02", "Devuelve el valor original si el estado no está en el diccionario", () => {
-  is(getStatusLabel("estado_raro"), "estado_raro");
+  // Arrange
+  const estado = "estado_raro";
+
+  // Act
+  const etiqueta = getStatusLabel(estado);
+
+  // Assert
+  is(etiqueta, "estado_raro");
 });
 
 test("status-label-03", "Cadena vacía devuelve cadena vacía", () => {
-  is(getStatusLabel(""), "");
-  is(getStatusLabel(null as unknown as string), null as unknown as string);
+  // Arrange
+  const vacia = "";
+  const nula = null as unknown as string;
+
+  // Act
+  const deVacia = getStatusLabel(vacia);
+  const deNula = getStatusLabel(nula);
+
+  // Assert
+  is(deVacia, "");
+  is(deNula, null as unknown as string);
 });
 
 // --- getStatusColor -------------------------------------------
 
 test("status-color-01", "Devuelve las clases del estado conocido", () => {
-  is(getStatusColor("en_progreso"), "bg-amber-500/20 text-amber-400");
-  is(getStatusColor("completado"), "bg-emerald-500/20 text-emerald-400");
-  is(getStatusColor("pausado"), "bg-slate-500/20 text-slate-400");
-  is(getStatusColor("PENDIENTE"), "bg-amber-500/20 text-amber-400");
-  is(getStatusColor("procesando"), "bg-blue-500/20 text-blue-400");
-  is(getStatusColor("enviado"), "bg-purple-500/20 text-purple-400");
-  is(getStatusColor("entregado"), "bg-emerald-500/20 text-emerald-400");
-  is(getStatusColor("cancelado"), "bg-red-500/20 text-red-400");
+  // Arrange
+  const casos: Array<[unknown, unknown]> = [
+    ["en_progreso", "bg-amber-500/20 text-amber-400"],
+    ["completado", "bg-emerald-500/20 text-emerald-400"],
+    ["pausado", "bg-slate-500/20 text-slate-400"],
+    ["PENDIENTE", "bg-amber-500/20 text-amber-400"],
+    ["procesando", "bg-blue-500/20 text-blue-400"],
+    ["enviado", "bg-purple-500/20 text-purple-400"],
+    ["entregado", "bg-emerald-500/20 text-emerald-400"],
+    ["cancelado", "bg-red-500/20 text-red-400"],
+  ];
+
+  // Act
+  const obtenidos = casos.map(([estado]) => getStatusColor(estado as string));
+
+  // Assert
+  comprobarTabla(casos, obtenidos);
 });
 
 test("status-color-02", "Cae al color slate por defecto para estados desconocidos o vacíos", () => {
-  is(getStatusColor("xyz"), "bg-slate-500/20 text-slate-400");
-  is(getStatusColor(""), "bg-slate-500/20 text-slate-400");
-  is(getStatusColor(null as unknown as string), "bg-slate-500/20 text-slate-400");
+  // Arrange
+  const POR_DEFECTO = "bg-slate-500/20 text-slate-400";
+  const casos: Array<[unknown, unknown]> = [
+    ["xyz", POR_DEFECTO],
+    ["", POR_DEFECTO],
+    [null, POR_DEFECTO],
+  ];
+
+  // Act
+  const obtenidos = casos.map(([estado]) => getStatusColor(estado as string));
+
+  // Assert
+  comprobarTabla(casos, obtenidos);
 });
 
 // --- translateMaterialName -----------------------------------
 
 test("mat-name-01", "Nombre fijo: usa el fallback en inglés cuando la clave no está traducida", () => {
-  is(translateMaterialName("Boquilla", tIdentidad), "Grout");
-  is(translateMaterialName("Crucetas 2mm", tIdentidad), "Spacers 2mm");
-  is(translateMaterialName("Pegante cerámico flexible 25kg", tIdentidad), "Flexible Ceramic Adhesive 25kg");
-  is(translateMaterialName("Cinta underlayment", tIdentidad), "Underlayment tape");
-  is(translateMaterialName("Primer para vinilo", tIdentidad), "Primer for vinyl");
-  is(translateMaterialName("Kit Rodillo Antigoteo Profesional 23cm", tIdentidad), "Professional Anti-Drip Roller Kit 23cm");
-  is(translateMaterialName("Nivel de burbuja profesional 60cm", tIdentidad), "Professional Bubble Level 60cm");
-  is(translateMaterialName("Llana metálica dentada 10x10mm", tIdentidad), "Notched steel trowel 10x10mm");
-  is(translateMaterialName("Mazo de goma blanco anti-marca", tIdentidad), "White non-marking rubber mallet");
+  // Arrange
+  const casos: Array<[unknown, unknown]> = [
+    ["Boquilla", "Grout"],
+    ["Crucetas 2mm", "Spacers 2mm"],
+    ["Pegante cerámico flexible 25kg", "Flexible Ceramic Adhesive 25kg"],
+    ["Cinta underlayment", "Underlayment tape"],
+    ["Primer para vinilo", "Primer for vinyl"],
+    ["Kit Rodillo Antigoteo Profesional 23cm", "Professional Anti-Drip Roller Kit 23cm"],
+    ["Nivel de burbuja profesional 60cm", "Professional Bubble Level 60cm"],
+    ["Llana metálica dentada 10x10mm", "Notched steel trowel 10x10mm"],
+    ["Mazo de goma blanco anti-marca", "White non-marking rubber mallet"],
+  ];
+
+  // Act
+  const obtenidos = casos.map(([nombre]) => translateMaterialName(nombre as string, tIdentidad));
+
+  // Assert
+  comprobarTabla(casos, obtenidos);
 });
 
 test("mat-name-02", "Nombre fijo: usa la traducción del diccionario cuando existe", () => {
+  // Arrange
   const t = tDiccionario({
     "projects.supply_grout_title": "Lechada",
     "projects.supply_adhesive_flexible": "Pegante Flexible",
     "projects.supply_paint_premium": "Pintura Pro",
   });
-  is(translateMaterialName("Boquilla", t), "Lechada");
-  is(translateMaterialName("Pegante cerámico flexible 25kg", t), "Pegante Flexible");
-  is(translateMaterialName("Pintura Premium de Interior/Exterior Mate", t), "Pintura Pro");
+  const casos: Array<[unknown, unknown]> = [
+    ["Boquilla", "Lechada"],
+    ["Pegante cerámico flexible 25kg", "Pegante Flexible"],
+    ["Pintura Premium de Interior/Exterior Mate", "Pintura Pro"],
+  ];
+
+  // Act
+  const obtenidos = casos.map(([nombre]) => translateMaterialName(nombre as string, t));
+
+  // Assert
+  comprobarTabla(casos, obtenidos);
 });
 
 test("mat-name-03", "Nombre fijo por prefijo (startsWith)", () => {
-  is(
-    translateMaterialName("Pintura Premium de Interior/Exterior Blanco Mate", tIdentidad),
-    "Premium Interior/Exterior Paint",
-  );
-  is(
-    translateMaterialName("Brocha de cerda fina 2.5 pulg", tIdentidad),
-    'Fine bristle brush 2.5"',
-  );
-  is(
-    translateMaterialName("Cinta de enmascarar azul", tIdentidad),
-    'Premium masking tape 1"',
-  );
+  // Arrange
+  const casos: Array<[unknown, unknown]> = [
+    ["Pintura Premium de Interior/Exterior Blanco Mate", "Premium Interior/Exterior Paint"],
+    ["Brocha de cerda fina 2.5 pulg", 'Fine bristle brush 2.5"'],
+    ["Cinta de enmascarar azul", 'Premium masking tape 1"'],
+  ];
+
+  // Act
+  const obtenidos = casos.map(([nombre]) => translateMaterialName(nombre as string, tIdentidad));
+
+  // Assert
+  comprobarTabla(casos, obtenidos);
 });
 
 test("mat-name-04", "Revestimiento dinámico: reemplaza el nombre de superficie", () => {
+  // Arrange
   const t = tDiccionario({
     "projects.surface_ceramica": "Ceramic",
     "projects.surface_porcelanato": "Porcelain Tile",
     "projects.surface_madera": "Laminate Wood",
     "projects.surface_vinilo": "Vinyl Floor",
   });
-  is(translateMaterialName("Cerámica 60x60 cm", t), "Ceramic 60x60 cm");
-  is(translateMaterialName("Porcelanato 80x80 cm", t), "Porcelain Tile 80x80 cm");
-  is(translateMaterialName("Madera laminada Roble", t), "Laminate Wood Roble");
-  is(translateMaterialName("Vinilo Autoadhesivo", t), "Vinyl Floor Autoadhesivo");
+  const casos: Array<[unknown, unknown]> = [
+    ["Cerámica 60x60 cm", "Ceramic 60x60 cm"],
+    ["Porcelanato 80x80 cm", "Porcelain Tile 80x80 cm"],
+    ["Madera laminada Roble", "Laminate Wood Roble"],
+    ["Vinilo Autoadhesivo", "Vinyl Floor Autoadhesivo"],
+  ];
+
+  // Act
+  const obtenidos = casos.map(([nombre]) => translateMaterialName(nombre as string, t));
+
+  // Assert
+  comprobarTabla(casos, obtenidos);
 });
 
 test("mat-name-05", "Revestimiento dinámico: reemplaza superficie y sufijo Pared", () => {
+  // Arrange
   const t = tDiccionario({
     "projects.surface_ceramica": "Ceramic",
     "projects.surface_wall_suffix": "Wall",
   });
-  is(translateMaterialName("Cerámica Pared 80x80 cm", t), "Ceramic Wall 80x80 cm");
-  // Fallbacks en inglés cuando no hay traducción
-  is(translateMaterialName("Porcelanato Pared 60x60", tIdentidad), "Porcelain Wall 60x60");
+
+  // Act
+  const conDiccionario = translateMaterialName("Cerámica Pared 80x80 cm", t);
+  const conFallback = translateMaterialName("Porcelanato Pared 60x60", tIdentidad);
+
+  // Assert
+  is(conDiccionario, "Ceramic Wall 80x80 cm");
+  is(conFallback, "Porcelain Wall 60x60"); // fallback en inglés cuando no hay traducción
 });
 
 test("mat-name-06", "Nombre no reconocido pasa sin cambios", () => {
-  is(translateMaterialName("Tornillos autoperforantes surtidos", tIdentidad), "Tornillos autoperforantes surtidos");
+  // Arrange
+  const nombre = "Tornillos autoperforantes surtidos";
+
+  // Act
+  const traducido = translateMaterialName(nombre, tIdentidad);
+
+  // Assert
+  is(traducido, "Tornillos autoperforantes surtidos");
 });
 
 // --- translateMaterialNote ---------------------------------
 
 test("mat-note-01", "Nota nula devuelve null", () => {
-  is(translateMaterialNote(null, tIdentidad), null);
+  // Arrange
+  const nota = null;
+
+  // Act
+  const traducida = translateMaterialNote(nota, tIdentidad);
+
+  // Assert
+  is(traducida, null);
 });
 
 test("mat-note-02", "Extrae el % de desperdicio y usa el fallback en inglés", () => {
-  is(
-    translateMaterialNote("Cálculo exacto: 1 galón por cada 30m² (+12% desperdicio)", tIdentidad),
-    "Exact calculation: 1 gallon per 30m² (Includes +12% waste)",
-  );
-  is(
-    translateMaterialNote("Cálculo exacto: 1 galón por cada 30m²", tIdentidad),
-    "Exact calculation: 1 gallon per 30m² (Includes +10% waste)",
-  );
-  is(
-    translateMaterialNote("Cálculo exacto con +15% de desperdicio", tIdentidad),
-    "Exact calculation with +15% waste",
-  );
-  is(
-    translateMaterialNote("Cálculo exacto con + desperdicio", tIdentidad),
-    "Exact calculation with +10% waste",
-  );
-  is(
-    translateMaterialNote("Rendimiento aproximado de 30m² (+8% desperdicio)", tIdentidad),
-    "Approximate yield of 30m² each with 2 coats (Includes +8% waste)",
-  );
-  is(
-    translateMaterialNote("Rendimiento aproximado de 30m²", tIdentidad),
-    "Approximate yield of 30m² each with 2 coats (Includes +5% waste)",
-  );
-  is(
-    translateMaterialNote("+12% desperdicio por colocación", tIdentidad),
-    "+12% waste due to layout pattern",
-  );
-  is(
-    translateMaterialNote("+ desperdicio por colocación", tIdentidad),
-    "+10% waste due to layout pattern",
-  );
-  is(
-    translateMaterialNote("Paredes estimadas (+15% desperdicio)", tIdentidad),
-    "Estimated walls (+15% waste)",
-  );
-  is(
-    translateMaterialNote("Paredes estimadas", tIdentidad),
-    "Estimated walls (+10% waste)",
-  );
+  // Arrange
+  const casos: Array<[unknown, unknown]> = [
+    ["Cálculo exacto: 1 galón por cada 30m² (+12% desperdicio)", "Exact calculation: 1 gallon per 30m² (Includes +12% waste)"],
+    ["Cálculo exacto: 1 galón por cada 30m²", "Exact calculation: 1 gallon per 30m² (Includes +10% waste)"],
+    ["Cálculo exacto con +15% de desperdicio", "Exact calculation with +15% waste"],
+    ["Cálculo exacto con + desperdicio", "Exact calculation with +10% waste"],
+    ["Rendimiento aproximado de 30m² (+8% desperdicio)", "Approximate yield of 30m² each with 2 coats (Includes +8% waste)"],
+    ["Rendimiento aproximado de 30m²", "Approximate yield of 30m² each with 2 coats (Includes +5% waste)"],
+    ["+12% desperdicio por colocación", "+12% waste due to layout pattern"],
+    ["+ desperdicio por colocación", "+10% waste due to layout pattern"],
+    ["Paredes estimadas (+15% desperdicio)", "Estimated walls (+15% waste)"],
+    ["Paredes estimadas", "Estimated walls (+10% waste)"],
+  ];
+
+  // Act
+  const obtenidos = casos.map(([nota]) => translateMaterialNote(nota as string, tIdentidad));
+
+  // Assert
+  comprobarTabla(casos, obtenidos);
 });
 
 test("mat-note-03", "Notas fijas exactas con fallback", () => {
-  is(translateMaterialNote("Pegante real vinculado", tIdentidad), "Linked real adhesive: 1 bag per 4m²");
-  is(translateMaterialNote("25kg c/u (Rendimiento: 4m²/bulto)", tIdentidad), "25kg each (Yield: 4m²/bag)");
-  is(translateMaterialNote("Boquilla real vinculada", tIdentidad), "Linked real grout: 1 kg per 8m²");
-  is(translateMaterialNote("Rendimiento: 8m²/kg", tIdentidad), "Yield: 8m²/kg");
-  is(translateMaterialNote("100 unidades c/u (Rendimiento: 15m²/bolsa)", tIdentidad), "100 units each (Yield: 15m²/bag)");
-  is(translateMaterialNote("20m² c/u (Aislamiento acústico y de humedad)", tIdentidad), "20m² each (Acoustic and moisture barrier)");
-  is(translateMaterialNote("15m² c/u (Adherencia óptima)", tIdentidad), "15m² each (Optimal adhesion)");
-  is(translateMaterialNote("Incluye bandeja y felpa de microfibra", tIdentidad), "Includes tray and microfiber roller sleeve");
-  is(translateMaterialNote("Para retoques y esquinas", tIdentidad), "For touch-ups and corners");
-  is(translateMaterialNote("Para protección de bordes y zócalos", tIdentidad), "For edge and baseboard protection");
-  is(translateMaterialNote("Para alineación exacta de la superficie", tIdentidad), "For precise surface alignment");
-  is(translateMaterialNote("Para distribución correcta del pegante", tIdentidad), "For correct adhesive distribution");
-  is(translateMaterialNote("Para asentamiento de baldosas sin fracturas", tIdentidad), "For tile settlement without cracks");
+  // Arrange
+  const casos: Array<[unknown, unknown]> = [
+    ["Pegante real vinculado", "Linked real adhesive: 1 bag per 4m²"],
+    ["25kg c/u (Rendimiento: 4m²/bulto)", "25kg each (Yield: 4m²/bag)"],
+    ["Boquilla real vinculada", "Linked real grout: 1 kg per 8m²"],
+    ["Rendimiento: 8m²/kg", "Yield: 8m²/kg"],
+    ["100 unidades c/u (Rendimiento: 15m²/bolsa)", "100 units each (Yield: 15m²/bag)"],
+    ["20m² c/u (Aislamiento acústico y de humedad)", "20m² each (Acoustic and moisture barrier)"],
+    ["15m² c/u (Adherencia óptima)", "15m² each (Optimal adhesion)"],
+    ["Incluye bandeja y felpa de microfibra", "Includes tray and microfiber roller sleeve"],
+    ["Para retoques y esquinas", "For touch-ups and corners"],
+    ["Para protección de bordes y zócalos", "For edge and baseboard protection"],
+    ["Para alineación exacta de la superficie", "For precise surface alignment"],
+    ["Para distribución correcta del pegante", "For correct adhesive distribution"],
+    ["Para asentamiento de baldosas sin fracturas", "For tile settlement without cracks"],
+  ];
+
+  // Act
+  const obtenidos = casos.map(([nota]) => translateMaterialNote(nota as string, tIdentidad));
+
+  // Assert
+  comprobarTabla(casos, obtenidos);
 });
 
 test("mat-note-04", "Interpola {waste} en la traducción del diccionario", () => {
+  // Arrange
   const t = tDiccionario({
     "projects.note_paint_exact": "Cálculo galón exacto +{waste}%",
     "projects.note_exact_waste": "Cálculo +{waste}% desp.",
@@ -210,14 +321,29 @@ test("mat-note-04", "Interpola {waste} en la traducción del diccionario", () =>
     "projects.note_walls_estimated": "Paredes +{waste}%",
     "projects.note_adhesive_linked": "Pegante vinculado real",
   });
-  is(translateMaterialNote("Cálculo exacto: 1 galón por cada 30m² (+10%)", t), "Cálculo galón exacto +10%");
-  is(translateMaterialNote("Cálculo exacto con +20% de desperdicio", t), "Cálculo +20% desp.");
-  is(translateMaterialNote("Rendimiento aproximado de 30m² (+5%)", t), "Rendimiento aprox +5%");
-  is(translateMaterialNote("+15% desperdicio por colocación", t), "+15% colocación");
-  is(translateMaterialNote("Paredes estimadas (+12%)", t), "Paredes +12%");
-  is(translateMaterialNote("Pegante real vinculado", t), "Pegante vinculado real");
+  const casos: Array<[unknown, unknown]> = [
+    ["Cálculo exacto: 1 galón por cada 30m² (+10%)", "Cálculo galón exacto +10%"],
+    ["Cálculo exacto con +20% de desperdicio", "Cálculo +20% desp."],
+    ["Rendimiento aproximado de 30m² (+5%)", "Rendimiento aprox +5%"],
+    ["+15% desperdicio por colocación", "+15% colocación"],
+    ["Paredes estimadas (+12%)", "Paredes +12%"],
+    ["Pegante real vinculado", "Pegante vinculado real"],
+  ];
+
+  // Act
+  const obtenidos = casos.map(([nota]) => translateMaterialNote(nota as string, t));
+
+  // Assert
+  comprobarTabla(casos, obtenidos);
 });
 
 test("mat-note-05", "Nota sin patrón conocido pasa sin cambios", () => {
-  is(translateMaterialNote("Nota totalmente inventada", tIdentidad), "Nota totalmente inventada");
+  // Arrange
+  const nota = "Nota totalmente inventada";
+
+  // Act
+  const traducida = translateMaterialNote(nota, tIdentidad);
+
+  // Assert
+  is(traducida, "Nota totalmente inventada");
 });
