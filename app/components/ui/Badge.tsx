@@ -23,7 +23,7 @@ export default function Badge({
   variant = "default",
   size = "md",
   className = "",
-}: BadgeProps) {
+}: Readonly<BadgeProps>) {
   return (
     <span
       className={`

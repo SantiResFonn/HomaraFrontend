@@ -122,11 +122,11 @@ export default function OrderDetailModal({
       />
 
       {/* Modal Dialog Card */}
-      <div
-        role="dialog"
+      <dialog
+        open
         aria-modal="true"
         aria-labelledby="order-modal-title"
-        className="bg-bg-surface border border-border max-w-2xl w-full rounded-none shadow-2xl relative flex flex-col max-h-[90vh] overflow-hidden animate-slide-up z-10"
+        className="bg-bg-surface border border-border max-w-2xl w-full rounded-none shadow-2xl relative flex flex-col max-h-[90vh] overflow-hidden animate-slide-up z-10 p-0 text-left"
       >
         {/* Top decorative accent */}
         <div className="absolute top-0 left-0 right-0 h-1.5 gradient-primary" />
@@ -153,12 +153,18 @@ export default function OrderDetailModal({
 
         {/* Modal Body */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {loading ? (
+          {loading && (
             <div className="py-12 flex flex-col items-center justify-center gap-3">
               <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary" />
               <p className="text-xs text-text-secondary">{t("account.detail_loading")}</p>
             </div>
-          ) : order ? (
+          )}
+          {!loading && !order && (
+            <div className="py-12 text-center text-sm text-error">
+              {t("account.detail_error")}
+            </div>
+          )}
+          {!loading && order && (
             <>
               {/* General Info Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-bg-surface-light border border-border">
@@ -299,10 +305,6 @@ export default function OrderDetailModal({
                 }}
               />
             </>
-          ) : (
-            <div className="py-12 text-center text-sm text-error">
-              {t("account.detail_error")}
-            </div>
           )}
         </div>
 
@@ -317,7 +319,7 @@ export default function OrderDetailModal({
             {closeBtnLabel || t("account.close_btn")}
           </Button>
         </div>
-      </div>
+      </dialog>
     </div>
   );
 }

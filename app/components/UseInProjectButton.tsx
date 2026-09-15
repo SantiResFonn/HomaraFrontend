@@ -208,12 +208,13 @@ export default function UseInProjectButton({
                   </p>
                 </div>
 
-                {loadingProjects ? (
+                {loadingProjects && (
                   <div className="flex-1 flex flex-col items-center justify-center py-12 text-text-secondary text-sm gap-2">
                     <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
                     <span>{t("projects.assign_loading")}</span>
                   </div>
-                ) : projects.length === 0 ? (
+                )}
+                {!loadingProjects && projects.length === 0 && (
                   <div className="flex-1 flex flex-col items-center justify-center py-8 text-center">
                     <div className="h-12 w-12 rounded-none bg-primary/5 flex items-center justify-center text-text-muted mb-3">
                       <LucideIcon name="Folder" size={24} />
@@ -242,7 +243,9 @@ export default function UseInProjectButton({
                       </button>
                     </div>
                   </div>
-                ) : (
+                )}
+
+                {!loadingProjects && projects.length > 0 && (
                   <div className="flex flex-col flex-1 overflow-hidden">
                     {/* Projects List Container */}
                     <div className="flex-1 overflow-y-auto pr-1 space-y-2 mb-6 scrollbar-thin max-h-[300px]">

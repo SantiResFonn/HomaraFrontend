@@ -11,7 +11,6 @@ interface CartItemCardProps {
   updatedAt?: string;
   isBackorder?: boolean;
   backorderQuantity?: number;
-  availableStock?: number;
   onQuantityChange?: (quantity: number) => void;
   onRemove?: () => void;
 }
@@ -24,7 +23,7 @@ export default function CartItemCard({
   backorderQuantity,
   onQuantityChange,
   onRemove,
-}: CartItemCardProps) {
+}: Readonly<CartItemCardProps>) {
   const { t } = useLanguage();
   const [timeLeft, setTimeLeft] = useState<string>("");
 
@@ -34,7 +33,7 @@ export default function CartItemCard({
     const calculateTimeLeft = () => {
       const updatedTime = new Date(updatedAt).getTime();
       const expiresAt = updatedTime + 15 * 60 * 1000; // 15 minutes
-      const now = new Date().getTime();
+      const now = Date.now();
       const diff = expiresAt - now;
 
       if (diff <= 0) {

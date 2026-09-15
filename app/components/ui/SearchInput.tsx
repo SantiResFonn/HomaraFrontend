@@ -12,7 +12,7 @@ export default function SearchInput({
   value,
   onChange,
   className = "",
-}: SearchInputProps) {
+}: Readonly<SearchInputProps>) {
   return (
     <div className={`relative ${className}`.trim()}>
       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">

@@ -17,7 +17,7 @@ export default function OrderSummaryBreakdown({
   shippingCost,
   total,
   labels,
-}: OrderSummaryBreakdownProps) {
+}: Readonly<OrderSummaryBreakdownProps>) {
   return (
     <div className="pt-4 border-t border-border space-y-2">
       <div className="flex justify-between text-xs text-text-secondary">

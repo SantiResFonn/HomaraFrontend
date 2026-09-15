@@ -13,6 +13,12 @@ import SearchInput from "@/app/components/ui/SearchInput";
 import { useOrderDetailsModal } from "@/app/hooks/useOrderDetailsModal";
 import OrderDetailModal, { FullOrderDetail } from "@/app/components/OrderDetailModal";
 
+const ORDER_STATUS_VARIANTS: Record<string, "success" | "error" | "info" | "warning"> = {
+  entregado: "success",
+  cancelado: "error",
+  enviado: "info",
+};
+
 export default function AdminPedidosPage() {
   const { t } = useLanguage();
   const [orders, setOrders] = useState<OrderDetail[]>([]);
@@ -275,13 +281,7 @@ export default function AdminPedidosPage() {
               {paginatedOrders.map((order: OrderDetail) => {
                 const s = order.status?.toLowerCase();
                 const statusVariant =
-                  s === "entregado"
-                    ? "success"
-                    : s === "cancelado"
-                    ? "error"
-                    : s === "enviado"
-                    ? "info"
-                    : "warning";
+                  (s ? ORDER_STATUS_VARIANTS[s] : undefined) ?? "warning";
 
                 return (
                   <tr

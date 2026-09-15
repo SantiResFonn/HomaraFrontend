@@ -22,7 +22,7 @@ export default function AddToCartButton({
   className = "",
   disabled = false,
   fullWidth = true
-}: AddToCartButtonProps) {
+}: Readonly<AddToCartButtonProps>) {
   const [loading, setLoading] = useState(false);
   const { t } = useLanguage();
 

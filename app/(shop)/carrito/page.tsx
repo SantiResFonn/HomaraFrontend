@@ -119,7 +119,6 @@ export default function CarritoPage() {
                 updatedAt={item.updatedAt}
                 isBackorder={item.isBackorder}
                 backorderQuantity={item.backorderQuantity}
-                availableStock={item.availableStock}
                 onQuantityChange={(q) => handleQuantityChange(index, q)}
                 onRemove={() => handleRemove(index)}
               />

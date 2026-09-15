@@ -7,17 +7,19 @@ import { api } from "@/app/lib/api";
 import { showToast } from "@/app/lib/toast";
 import { useLanguage } from "@/app/context/LanguageContext";
 
+export type ProjectActionStatus = "EN_PROGRESO" | "COMPLETADO" | "PAUSADO";
+
 interface ProjectActionsProps {
   projectId: string;
   projectName: string;
   currentStatus: string;
 }
 
-export default function ProjectActions({ projectId, projectName, currentStatus }: ProjectActionsProps) {
+export default function ProjectActions({ projectId, projectName, currentStatus }: Readonly<ProjectActionsProps>) {
   const { t } = useLanguage();
   const router = useRouter();
-  const [status, setStatus] = useState<"EN_PROGRESO" | "COMPLETADO" | "PAUSADO">(
-    (currentStatus?.toUpperCase() || "EN_PROGRESO") as "EN_PROGRESO" | "COMPLETADO" | "PAUSADO"
+  const [status, setStatus] = useState<ProjectActionStatus>(
+    (currentStatus?.toUpperCase() || "EN_PROGRESO") as ProjectActionStatus
   );
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -26,11 +28,11 @@ export default function ProjectActions({ projectId, projectName, currentStatus }
 
   useEffect(() => {
     if (currentStatus) {
-      setStatus(currentStatus.toUpperCase() as "EN_PROGRESO" | "COMPLETADO" | "PAUSADO");
+      setStatus(currentStatus.toUpperCase() as ProjectActionStatus);
     }
   }, [currentStatus]);
 
-  const handleStatusChange = async (newStatus: "EN_PROGRESO" | "COMPLETADO" | "PAUSADO") => {
+  const handleStatusChange = async (newStatus: ProjectActionStatus) => {
     try {
       setUpdating(true);
       const res = await api.put(`/api/v1/projects/${projectId}`, { status: newStatus });
@@ -73,7 +75,7 @@ export default function ProjectActions({ projectId, projectName, currentStatus }
         <span className="text-[10px] uppercase tracking-wider font-extrabold text-text-muted whitespace-nowrap">{t("projects.actions_status_label")}</span>
         <select
           value={status}
-          onChange={(e) => handleStatusChange(e.target.value as "EN_PROGRESO" | "COMPLETADO" | "PAUSADO")}
+          onChange={(e) => handleStatusChange(e.target.value as ProjectActionStatus)}
           className="bg-bg-surface border border-border rounded-none px-3 py-2 text-xs font-bold text-text-primary uppercase tracking-wider focus:outline-none focus:border-primary transition-colors cursor-pointer"
           disabled={updating || deleting}
         >

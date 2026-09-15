@@ -7,21 +7,20 @@ import {
 } from "@/app/lib/utils";
 import { useLanguage } from "@/app/context/LanguageContext";
 
+const STATUS_VARIANTS: Record<string, "success" | "warning" | "info" | "default"> = {
+  completado: "success",
+  en_progreso: "warning",
+  pausado: "info",
+};
+
 interface ProjectCardProps {
   project: Project;
 }
 
-export default function ProjectCard({ project }: ProjectCardProps) {
+export default function ProjectCard({ project }: Readonly<ProjectCardProps>) {
   const { t } = useLanguage();
   const statusLower = project.status?.toLowerCase();
-  const statusVariant =
-    statusLower === "completado"
-      ? "success"
-      : statusLower === "en_progreso"
-      ? "warning"
-      : statusLower === "pausado"
-      ? "info"
-      : "default";
+  const statusVariant = (statusLower ? STATUS_VARIANTS[statusLower] : undefined) ?? "default";
 
   return (
     <Link href={`/proyectos/${project.id}`} className="group block">

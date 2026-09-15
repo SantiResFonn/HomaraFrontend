@@ -179,7 +179,7 @@ export default function MaterialsListEditor({
 
             return (
               <div
-                key={index}
+                key={mat.id ?? `${mat.name}-${mat.quantity}`}
                 className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 hover:bg-bg-surface-light transition-colors group"
               >
                 {/* Info & Icono */}

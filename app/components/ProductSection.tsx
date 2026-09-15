@@ -9,13 +9,15 @@ interface ProductSectionProps {
   skeletonKeyPrefix: string;
 }
 
+const SKELETON_ITEMS = [0, 1, 2, 3];
+
 export default function ProductSection({
   title,
   description,
   products,
   loading = false,
   skeletonKeyPrefix,
-}: ProductSectionProps) {
+}: Readonly<ProductSectionProps>) {
   if (!loading && products.length === 0) {
     return null;
   }
@@ -37,22 +39,21 @@ export default function ProductSection({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {loading
-          ? new Array(4)
-              .fill(null)
-              .map((_, i) => (
-                <div
-                  key={`${skeletonKeyPrefix}-${i}`}
-                  className="border border-border p-4 bg-bg-surface space-y-4 animate-pulse"
-                >
-                  <div className="aspect-[4/3] bg-bg-surface-light w-full" />
-                  <div className="h-4 bg-bg-surface-light w-2/3" />
-                  <div className="h-4 bg-bg-surface-light w-1/3" />
-                </div>
-              ))
-          : products.map((product: Product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
+        {loading &&
+          SKELETON_ITEMS.map((i) => (
+            <div
+              key={`${skeletonKeyPrefix}-${i}`}
+              className="border border-border p-4 bg-bg-surface space-y-4 animate-pulse"
+            >
+              <div className="aspect-[4/3] bg-bg-surface-light w-full" />
+              <div className="h-4 bg-bg-surface-light w-2/3" />
+              <div className="h-4 bg-bg-surface-light w-1/3" />
+            </div>
+          ))}
+        {!loading &&
+          products.map((product: Product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
       </div>
     </section>
   );

@@ -4,9 +4,9 @@ import RequireAuth from "@/app/components/RequireAuth";
 
 export default function ShopLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <>
       <Navbar />

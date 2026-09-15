@@ -135,7 +135,7 @@ interface LucideIconProps {
   size?: number;
 }
 
-export default function LucideIcon({ name, className = "", size = 20 }: LucideIconProps) {
+export default function LucideIcon({ name, className = "", size = 20 }: Readonly<LucideIconProps>) {
   const IconComponent = iconMap[name];
 
   if (!IconComponent) {

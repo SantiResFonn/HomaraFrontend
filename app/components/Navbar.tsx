@@ -25,7 +25,7 @@ export default function Navbar() {
     async function fetchCart() {
       try {
         const json = await api.get("/api/v1/cart");
-        if (json.success && json.data && json.data.items) {
+        if (json.success && json.data?.items) {
           const count = json.data.items.reduce((sum: number, item: CartItemDetail) => sum + item.quantity, 0);
           setCartCount(count);
         } else {
