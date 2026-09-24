@@ -90,7 +90,12 @@ pipeline {
 
         stage('Docker build & push') {
             agent any
-            when { branch 'main' }
+            when {
+                expression {
+                    // Multibranch usa BRANCH_NAME; un Pipeline normal usa GIT_BRANCH (origin/main)
+                    return env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main'
+                }
+            }
             steps {
                 script {
                     env.SHORT_SHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
