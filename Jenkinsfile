@@ -1,5 +1,21 @@
+// Ejecuta un comando dentro de node:20-alpine SIN el plugin Docker Pipeline.
+// Jenkins corre en un contenedor, por eso se comparte su volumen con --volumes-from.
+def inNode(String cmd, String extraEnv = '') {
+    sh """
+        docker run --rm \\
+          -u \$(id -u):\$(id -g) \\
+          --volumes-from \$(hostname) \\
+          -w "\$WORKSPACE" \\
+          -e HOME="\$WORKSPACE" \\
+          -e npm_config_cache="\$WORKSPACE/.npm" \\
+          -e NEXT_PUBLIC_API_URL -e NEXT_TELEMETRY_DISABLED -e CI \\
+          ${extraEnv} \\
+          node:20-alpine sh -c '${cmd}'
+    """
+}
+
 pipeline {
-    agent none
+    agent any
 
     options {
         disableConcurrentBuilds()
@@ -12,7 +28,13 @@ pipeline {
                defaultValue: 'http://localhost:5000/api/v1',
                description: 'NEXT_PUBLIC_API_URL (se inlinea en el bundle durante el build)')
         booleanParam(name: 'RUN_SONAR', defaultValue: true,
-                     description: 'Ejecutar análisis de SonarCloud')
+                     description: 'Ejecutar análisis en SonarQube local')
+        string(name: 'SONAR_HOST_URL',
+               defaultValue: 'http://host.docker.internal:9000',
+               description: 'URL del SonarQube local')
+        string(name: 'SONAR_TOKEN_CREDENTIAL_ID',
+               defaultValue: '',
+               description: 'ID de credencial (Secret text) con el token. Dejar vacío si no se usa token')
         booleanParam(name: 'PUSH_IMAGE', defaultValue: true,
                      description: 'Publicar la imagen en Docker Hub (solo rama main)')
     }
@@ -26,70 +48,58 @@ pipeline {
 
     stages {
 
-        stage('CI (Node 20)') {
-            agent {
-                docker {
-                    image 'node:20-alpine'
-                    reuseNode true
-                }
+        stage('Instalar dependencias') {
+            steps {
+                script { inNode('node --version && npm --version && npm ci') }
             }
-            environment {
-                HOME             = "${env.WORKSPACE}"
-                npm_config_cache = "${env.WORKSPACE}/.npm"
-            }
-            stages {
-                stage('Instalar dependencias') {
+        }
+
+        stage('Lint y pruebas') {
+            parallel {
+                stage('Lint (ESLint)') {
                     steps {
-                        sh 'node --version && npm --version'
-                        sh 'npm ci'
+                        script { inNode('npm run lint') }
                     }
                 }
-
-                stage('Lint y pruebas') {
-                    parallel {
-                        stage('Lint (ESLint)') {
-                            steps {
-                                sh 'npm run lint'
-                            }
-                        }
-                        stage('Tests + cobertura (Vitest)') {
-                            steps {
-                                sh 'npm run test:coverage'
-                            }
-                            post {
-                                always {
-                                    archiveArtifacts artifacts: 'coverage/**', allowEmptyArchive: true
-                                }
-                            }
-                        }
-                    }
-                }
-
-                stage('Build (Next.js)') {
+                stage('Tests + cobertura (Vitest)') {
                     steps {
-                        sh 'npm run build'
+                        script { inNode('npm run test:coverage') }
                     }
-                }
-
-                stage('SonarCloud') {
-                    when { expression { return params.RUN_SONAR } }
-                    steps {
-                        // Credencial tipo "Secret text" con el token de SonarCloud
-                        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                            sh '''
-                                npx --yes @sonar/scan \
-                                  -Dsonar.host.url=https://sonarcloud.io \
-                                  -Dsonar.token=$SONAR_TOKEN \
-                                  -Dsonar.scm.revision=$GIT_COMMIT
-                            '''
+                    post {
+                        always {
+                            archiveArtifacts artifacts: 'coverage/**', allowEmptyArchive: true
                         }
                     }
                 }
             }
         }
 
+        stage('Build (Next.js)') {
+            steps {
+                script { inNode('npm run build') }
+            }
+        }
+
+        stage('SonarQube (local)') {
+            when { expression { return params.RUN_SONAR } }
+            steps {
+                script {
+                    // host.docker.internal permite al contenedor de Node llegar al SonarQube del host
+                    def scan = "npx --yes @sonar/scan -Dsonar.host.url=${params.SONAR_HOST_URL} -Dsonar.scm.revision=\$GIT_COMMIT"
+                    def opts = '--add-host=host.docker.internal:host-gateway -e GIT_COMMIT'
+                    if (params.SONAR_TOKEN_CREDENTIAL_ID?.trim()) {
+                        // Solo si tu SonarQube exige autenticación: credencial tipo "Secret text"
+                        withCredentials([string(credentialsId: params.SONAR_TOKEN_CREDENTIAL_ID, variable: 'SONAR_TOKEN')]) {
+                            inNode(scan + ' -Dsonar.token=$SONAR_TOKEN', opts + ' -e SONAR_TOKEN')
+                        }
+                    } else {
+                        inNode(scan, opts)
+                    }
+                }
+            }
+        }
+
         stage('Docker build & push') {
-            agent any
             when {
                 expression {
                     // Multibranch usa BRANCH_NAME; un Pipeline normal usa GIT_BRANCH (origin/main)
