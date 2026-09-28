@@ -32,6 +32,9 @@ pipeline {
         string(name: 'SONAR_HOST_URL',
                defaultValue: 'http://host.docker.internal:9000',
                description: 'URL del SonarQube local')
+        string(name: 'SONAR_DOCKER_NETWORK',
+               defaultValue: '',
+               description: 'Red de Docker donde corre SonarQube (opcional). Si se indica, usa SONAR_HOST_URL tipo http://<contenedor>:9000')
         string(name: 'SONAR_TOKEN_CREDENTIAL_ID',
                defaultValue: '',
                description: 'ID de credencial (Secret text) con el token. Dejar vacío si no se usa token')
@@ -87,6 +90,9 @@ pipeline {
                     // host.docker.internal permite al contenedor de Node llegar al SonarQube del host
                     def scan = "npx --yes @sonar/scan -Dsonar.host.url=${params.SONAR_HOST_URL} -Dsonar.scm.revision=\$GIT_COMMIT"
                     def opts = '--add-host=host.docker.internal:host-gateway -e GIT_COMMIT'
+                    if (params.SONAR_DOCKER_NETWORK?.trim()) {
+                        opts += " --network ${params.SONAR_DOCKER_NETWORK.trim()}"
+                    }
                     if (params.SONAR_TOKEN_CREDENTIAL_ID?.trim()) {
                         // Solo si tu SonarQube exige autenticación: credencial tipo "Secret text"
                         withCredentials([string(credentialsId: params.SONAR_TOKEN_CREDENTIAL_ID, variable: 'SONAR_TOKEN')]) {
@@ -109,30 +115,26 @@ pipeline {
             steps {
                 script {
                     env.SHORT_SHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                }
-                // Credencial tipo "Username with password" de Docker Hub
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials',
-                                                  usernameVariable: 'DOCKER_USER',
-                                                  passwordVariable: 'DOCKER_PASS')]) {
-                    sh '''
-                        IMAGE="$DOCKER_USER/$IMAGE_NAME"
-                        docker build \
-                          --build-arg NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL" \
-                          -t "$IMAGE:$SHORT_SHA" \
-                          -t "$IMAGE:latest" .
-                    '''
-                    script {
-                        if (params.PUSH_IMAGE) {
-                            sh '''
-                                IMAGE="$DOCKER_USER/$IMAGE_NAME"
-                                echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                                docker push "$IMAGE:$SHORT_SHA"
-                                docker push "$IMAGE:latest"
+                    def buildArgs = '--build-arg NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL"'
+                    if (params.PUSH_IMAGE) {
+                        // Credencial tipo "Username with password" de Docker Hub
+                        withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials',
+                                                          usernameVariable: 'DOCKER_USER',
+                                                          passwordVariable: 'DOCKER_PASS')]) {
+                            sh """
+                                IMAGE="\$DOCKER_USER/\$IMAGE_NAME"
+                                docker build ${buildArgs} -t "\$IMAGE:\$SHORT_SHA" -t "\$IMAGE:latest" .
+                                echo "\$DOCKER_PASS" | docker login -u "\$DOCKER_USER" --password-stdin
+                                docker push "\$IMAGE:\$SHORT_SHA"
+                                docker push "\$IMAGE:latest"
                                 docker logout
-                            '''
-                        } else {
-                            echo 'PUSH_IMAGE=false: se omite la publicación en Docker Hub.'
+                            """
                         }
+                    } else {
+                        echo 'PUSH_IMAGE=false: se construye la imagen solo en local, sin publicar.'
+                        sh """
+                            docker build ${buildArgs} -t "\$IMAGE_NAME:\$SHORT_SHA" -t "\$IMAGE_NAME:latest" .
+                        """
                     }
                 }
             }
