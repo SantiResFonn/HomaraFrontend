@@ -105,6 +105,16 @@ pipeline {
             }
         }
 
+        stage('Quality Gate') {
+            when { expression { return params.RUN_SONAR } }
+            steps {
+                // Requiere el plugin "SonarQube Scanner" y el webhook configurado en SonarQube
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
         stage('Docker build & push') {
             when {
                 expression {
